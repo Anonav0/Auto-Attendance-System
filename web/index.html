@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>SAMS portal</title>
+    <link href="style.css" rel="stylesheet" />
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript" src="main.js" defer></script>
+  </head>
+
+  <body>
+    <section class="wellcome_area clearfix" id="home">
+      <div class="container h-100">
+        <div class="row h-100 align-items-center">
+          <div class="col-12 col-md">
+            <div class="wellcome-heading">
+              <h2>Smart Attendance Management System</h2>
+              <h3>SAMS</h3>
+            </div>
+            <div class="get-start-area2">
+              <form class="form-inline">
+                <p>Start the realtime face recognition stream</p>
+                <input
+                  type="button"
+                  class="submit"
+                  value="Take Attendance"
+                  onclick="start_stream()"
+                />
+                <div id="my_camera" class="camera-frame">
+                  <video id="camera_preview" autoplay playsinline muted></video>
+                </div>
+              </form>
+            </div>
+            <p>Add a new student here !!</p>
+
+            <div class="get-start-area">
+              <form class="form-inline">
+                <input
+                  type="text"
+                  id="rollno"
+                  class="form-control email"
+                  placeholder="Enter Roll No"
+                />
+                <input
+                  type="button"
+                  class="submit"
+                  value="Open Web-Cam"
+                  id="btPic"
+                  onclick="setup()"
+                />
+                <div id="camera_status" class="camera-status"></div>
+                <input
+                  type="button"
+                  class="submit"
+                  value="Take Picture"
+                  onclick="take_snapshot()"
+                />
+                <input
+                  type="button"
+                  class="submit"
+                  value="Add Student"
+                  onclick="add_student()"
+                />
+                <div id="results">
+                  <p>Your captured image will appear here...</p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="welcome-thumb">
+        <img id="qr" src="" width="60%" />
+      </div>
+    </section>
+  </body>
+</html>
