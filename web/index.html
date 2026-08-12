@@ -2,82 +2,134 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="" />
+    <meta
+      name="description"
+      content="Smart Attendance Management System portal"
+    />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>SAMS portal</title>
+    <title>Smart Attendance Management System</title>
     <link href="style.css" rel="stylesheet" />
     <script type="text/javascript" src="/eel.js"></script>
     <script type="text/javascript" src="main.js" defer></script>
   </head>
 
   <body>
-    <section class="wellcome_area clearfix" id="home">
-      <div class="container h-100">
-        <div class="row h-100 align-items-center">
-          <div class="col-12 col-md">
-            <div class="wellcome-heading">
-              <h2>Smart Attendance Management System</h2>
-              <h3>SAMS</h3>
-            </div>
-            <div class="get-start-area2">
-              <form class="form-inline">
-                <p>Start the realtime face recognition stream</p>
-                <input
-                  type="button"
-                  class="submit"
-                  value="Take Attendance"
-                  onclick="start_stream()"
-                />
-                <div id="my_camera" class="camera-frame">
-                  <video id="camera_preview" autoplay playsinline muted></video>
-                </div>
-              </form>
-            </div>
-            <p>Add a new student here !!</p>
-
-            <div class="get-start-area">
-              <form class="form-inline">
-                <input
-                  type="text"
-                  id="rollno"
-                  class="form-control email"
-                  placeholder="Enter Roll No"
-                />
-                <input
-                  type="button"
-                  class="submit"
-                  value="Open Web-Cam"
-                  id="btPic"
-                  onclick="setup()"
-                />
-                <div id="camera_status" class="camera-status"></div>
-                <input
-                  type="button"
-                  class="submit"
-                  value="Take Picture"
-                  onclick="take_snapshot()"
-                />
-                <input
-                  type="button"
-                  class="submit"
-                  value="Add Student"
-                  onclick="add_student()"
-                />
-                <div id="results">
-                  <p>Your captured image will appear here...</p>
-                </div>
-              </form>
+    <section class="app-shell" id="home">
+      <div class="app-panel">
+        <header class="topbar">
+          <div class="brand-group">
+            <div class="brand-mark">S</div>
+            <div>
+              <p class="eyebrow">Smart Attendance Management System</p>
+              <h1>Secure, intelligent attendance control</h1>
             </div>
           </div>
+          <div class="status-pill">Live session ready</div>
+        </header>
+
+        <div class="dashboard-grid">
+          <div class="content-column">
+            <div class="hero-card">
+              <div class="hero-text">
+                <p class="eyebrow">Operations center</p>
+                <h2>
+                  Begin the recognition stream or add a new student profile
+                </h2>
+                <p>
+                  Manage attendance capture and enrollment from a single
+                  polished dashboard with the same reliable workflow.
+                </p>
+              </div>
+              <div class="hero-actions">
+                <div class="get-start-area2">
+                  <form class="form-inline">
+                    <p>Start the real-time face recognition stream</p>
+                    <input
+                      type="button"
+                      class="submit"
+                      value="Take Attendance"
+                      onclick="start_stream()"
+                    />
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">Student enrollment</p>
+                  <h3>Add a new student</h3>
+                </div>
+              </div>
+
+              <div class="get-start-area">
+                <form class="form-inline">
+                  <input
+                    type="text"
+                    id="rollno"
+                    class="form-control email"
+                    placeholder="Enter Roll No"
+                  />
+                  <input
+                    type="button"
+                    class="submit"
+                    value="Open Web-Cam"
+                    id="btPic"
+                    onclick="setup()"
+                  />
+                  <input
+                    type="button"
+                    class="submit"
+                    value="Take Picture"
+                    onclick="take_snapshot()"
+                  />
+                  <input
+                    type="button"
+                    class="submit"
+                    value="Add Student"
+                    onclick="add_student()"
+                  />
+                </form>
+              </div>
+
+              <div class="status-row">
+                <div id="camera_status" class="camera-status"></div>
+              </div>
+
+              <div id="results" class="results-area">
+                <p>Your captured image will appear here...</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="side-column">
+            <div class="preview-card">
+              <div class="preview-header">
+                <div>
+                  <p class="eyebrow">Live preview</p>
+                  <h3>Camera Feed</h3>
+                </div>
+              </div>
+              <div id="my_camera" class="camera-frame">
+                <video id="camera_preview" autoplay playsinline muted></video>
+              </div>
+            </div>
+
+            <div class="qr-card">
+              <p class="eyebrow">Quick access</p>
+              <h3>Attendance snapshot</h3>
+              <img id="qr" src="" alt="QR preview" />
+            </div>
+          </aside>
         </div>
       </div>
-      <div class="welcome-thumb">
-        <img id="qr" src="" width="60%" />
-      </div>
+
+      <footer class="app-footer">Made by Swarnavo(Anonav0)</footer>
     </section>
   </body>
 </html>
