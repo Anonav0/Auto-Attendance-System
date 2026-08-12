@@ -272,6 +272,11 @@ def take_attendance():
 
     if not video_capture.isOpened():
         print("Could not open the webcam for attendance.")
+        eel.show_notification(
+            "error",
+            "Attendance Could Not Be Recorded",
+            "Please check the system and try again.",
+        )
         return
 
     # Initialize some variables
@@ -279,6 +284,7 @@ def take_attendance():
     face_encodings = []
     face_names = []
     process_this_frame = True
+    recorded_rolls = set()
         
     
     while True:
@@ -316,7 +322,16 @@ def take_attendance():
                 name = name[:name.find('.')]
                 # Assign attendance
                 if int(name) in range(1,61):
-                    _mark_attendance(int(name), "Present")
+                    roll_number = int(name)
+                    if roll_number not in recorded_rolls:
+                        _mark_attendance(roll_number, "Present")
+                        recorded_rolls.add(roll_number)
+                        date_label = datetime.datetime.now().strftime('%d %B %Y')
+                        eel.show_notification(
+                            "success",
+                            "Attendance Recorded",
+                            f"Roll No: {roll_number}\nDate: {date_label}\nStatus: Present",
+                        )
                 else:
                     pass
         
