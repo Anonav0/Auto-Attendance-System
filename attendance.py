@@ -230,6 +230,29 @@ book.save(workbook_path)
 # MODULE - 3 (TRAINING AND LOADING KNOWN FACE ENCODINGS)
 #-------------------------------------------------------------------------------------------------------------------------------------#
 
+def _reload_known_faces():
+    global known_face_encodings, known_face_names
+
+    known_face_encodings = []
+    known_face_names = []
+
+    print('Following images have been trained : ')
+    for filename in sorted(os.listdir(IMAGE_DIRECTORY_PATH)):
+        if not filename.endswith('.jpg'):
+            continue
+
+        image_path = os.path.join(IMAGE_DIRECTORY_PATH, str(filename))
+        print(str(filename))
+        image = face_recognition.load_image_file(image_path)                 # Load Image
+        image = np.ascontiguousarray(image)
+        try:
+            image_face_encoding = face_recognition.face_encodings(image)[0]         # Find the face encoding
+        except IndexError:
+            continue
+        known_face_encodings.append(image_face_encoding)                        # Append the face encoding to the known faces
+        known_face_names.append(os.path.splitext(filename)[0])                 # Append the name to the known face names
+
+
 @eel.expose
 def save_student_data(roll_number):
     source_image = os.path.join(DIRECTORY_PATH, 'image.jpg')
@@ -239,6 +262,7 @@ def save_student_data(roll_number):
         return 'No captured image found. Click Take Picture before Add Student.'
 
     os.replace(source_image, target_image)    # This will change the image.jpg to the roll number inserted in field.jpg
+    _reload_known_faces()
     return 'Student image saved.'
 
         
@@ -246,16 +270,7 @@ def save_student_data(roll_number):
 # Create arrays of known face encodings and their names
 known_face_encodings = []
 known_face_names = []
-
-print('Following images have been trained : ')
-for filename in os.listdir(IMAGE_DIRECTORY_PATH):
-    print(str(filename))
-    if filename.endswith(".jpg"):
-        image = face_recognition.load_image_file(os.path.join(IMAGE_DIRECTORY_PATH, str(filename)))                 # Load Image
-        image = np.ascontiguousarray(image)
-        image_face_encoding = face_recognition.face_encodings(image)[0]         # Find the face encoding
-        known_face_encodings.append(image_face_encoding)                        # Append the face encoding to the known faces
-        known_face_names.append(filename)                                       # Append the name to the known face names
+_reload_known_faces()
     
 
 
@@ -319,10 +334,14 @@ def take_attendance():
             if True in matches:
                 first_match_index = matches.index(True)
                 name = known_face_names[first_match_index]
-                name = name[:name.find('.')]
+                name = os.path.splitext(str(name))[0]
                 # Assign attendance
-                if int(name) in range(1,61):
+                try:
                     roll_number = int(name)
+                except ValueError:
+                    roll_number = None
+
+                if roll_number is not None and roll_number > 0:
                     if roll_number not in recorded_rolls:
                         _mark_attendance(roll_number, "Present")
                         recorded_rolls.add(roll_number)
@@ -332,8 +351,6 @@ def take_attendance():
                             "Attendance Recorded",
                             f"Roll No: {roll_number}\nDate: {date_label}\nStatus: Present",
                         )
-                else:
-                    pass
         
         face_names.append(name)
         
