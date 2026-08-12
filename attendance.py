@@ -2,7 +2,9 @@ import face_recognition
 import cv2
 import openpyxl
 from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import datetime
+import calendar
 import os
 import eel
 import base64
@@ -39,20 +41,187 @@ def get_image_data(data):
 # Load everything i.e workbook, video capture (videocam)
 
 # Load present date and time
-now= datetime.datetime.now()
-today=now.day
-month=now.month
-month_name = datetime.date(1900, month, 1).strftime('%B')           # Getting the month name from the month's integer
+now = datetime.datetime.now()
+today = now.day
+month = now.month
+year = now.year
+month_name = now.strftime('%B')
+days_in_month = calendar.monthrange(year, month)[1]
 
+attendance_rows = {}
 
-# Create a woorksheet only when the file does not exist else update the existing excel workbook
+# Create a worksheet only when the file does not exist else update the existing excel workbook
 workbook_path = os.path.join(DIRECTORY_PATH, str(month_name) + '.xlsx')
 if not os.path.isfile(workbook_path):
     book = Workbook()
     sheet = book.active
 else:
-    book= openpyxl.load_workbook(workbook_path)
-    sheet=book.active
+    book = openpyxl.load_workbook(workbook_path)
+    sheet = book.active
+
+
+def _style_attendance_sheet():
+    global sheet
+
+    title = "SMART ATTENDANCE SYSTEM"
+    subtitle = f"Attendance Register — {month_name} {year}"
+    header_font = Font(bold=True, color="FFFFFFFF")
+    header_fill = PatternFill(fill_type="solid", fgColor="1D4ED8")
+    body_fill = PatternFill(fill_type="solid", fgColor="F8FAFC")
+    border = Border(
+        left=Side(style="thin", color="D1D5DB"),
+        right=Side(style="thin", color="D1D5DB"),
+        top=Side(style="thin", color="D1D5DB"),
+        bottom=Side(style="thin", color="D1D5DB"),
+    )
+    center_alignment = Alignment(horizontal="center", vertical="center")
+
+    legacy_entries = []
+    if sheet['A1'].value != title:
+        for row_idx in range(1, sheet.max_row + 1):
+            for col_idx in range(1, sheet.max_column + 1):
+                cell = sheet.cell(row=row_idx, column=col_idx)
+                if cell.value not in (None, ""):
+                    legacy_entries.append((row_idx, col_idx, cell.value))
+
+        for row_idx in range(1, sheet.max_row + 1):
+            for col_idx in range(1, sheet.max_column + 1):
+                sheet.cell(row=row_idx, column=col_idx).value = None
+
+    sheet.title = f"Attendance_{month_name}_{year}"
+    sheet.cell(row=1, column=1).value = title
+    sheet.cell(row=2, column=1).value = subtitle
+
+    sheet.cell(row=4, column=1).value = "Roll No."
+    for day in range(1, days_in_month + 1):
+        sheet.cell(row=4, column=day + 1).value = f"{day:02d}"
+
+    for row_idx in range(4, 5):
+        for col_idx in range(1, days_in_month + 2):
+            cell = sheet.cell(row=row_idx, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = center_alignment
+            cell.border = border
+
+    for row_idx in range(5, 1000):
+        sheet.row_dimensions[row_idx].height = 22
+
+    for col_idx in range(1, days_in_month + 2):
+        if col_idx == 1:
+            sheet.column_dimensions["A"].width = 16
+        else:
+            sheet.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = 5.5
+
+    sheet.freeze_panes = "B5"
+
+    if legacy_entries:
+        row_lookup = {}
+        for row_idx in range(5, sheet.max_row + 1):
+            roll_value = sheet.cell(row=row_idx, column=1).value
+            if roll_value not in (None, ""):
+                if isinstance(roll_value, int) or str(roll_value).isdigit():
+                    row_lookup[int(roll_value)] = row_idx
+
+        for legacy_row, legacy_col, legacy_value in legacy_entries:
+            if legacy_row in (1, 2, 3, 4):
+                continue
+            if legacy_col < 1 or legacy_col > days_in_month:
+                continue
+            if not isinstance(legacy_row, int) or isinstance(legacy_row, bool):
+                continue
+
+            roll_number = legacy_row
+            day_number = legacy_col
+            if roll_number <= 0 or day_number <= 0:
+                continue
+
+            if roll_number not in row_lookup:
+                next_row = len(row_lookup) + 5
+                row_lookup[roll_number] = next_row
+                sheet.cell(row=next_row, column=1).value = roll_number
+                sheet.cell(row=next_row, column=1).font = Font(bold=True)
+                sheet.cell(row=next_row, column=1).alignment = center_alignment
+                sheet.cell(row=next_row, column=1).border = border
+            target_row = row_lookup[roll_number]
+            target_col = day_number + 1
+            sheet.cell(row=target_row, column=target_col).value = legacy_value
+            sheet.cell(row=target_row, column=target_col).alignment = center_alignment
+            sheet.cell(row=target_row, column=target_col).border = border
+            if isinstance(legacy_value, str) and legacy_value.lower() in ("present", "p"):
+                sheet.cell(row=target_row, column=target_col).fill = PatternFill(fill_type="solid", fgColor="D1FAE5")
+                sheet.cell(row=target_row, column=target_col).font = Font(bold=True, color="047857")
+
+    for row_idx in range(5, 1000):
+        roll_value = sheet.cell(row=row_idx, column=1).value
+        if roll_value in (None, ""):
+            break
+        attendance_rows[int(roll_value)] = row_idx
+        for col_idx in range(2, days_in_month + 2):
+            cell = sheet.cell(row=row_idx, column=col_idx)
+            if cell.value in (None, ""):
+                cell.border = border
+                cell.alignment = center_alignment
+                continue
+            cell.border = border
+            cell.alignment = center_alignment
+            if cell.value == "Present":
+                cell.fill = PatternFill(fill_type="solid", fgColor="D1FAE5")
+                cell.font = Font(bold=True, color="047857")
+            elif cell.value == "Absent":
+                cell.fill = PatternFill(fill_type="solid", fgColor="FEE2E2")
+                cell.font = Font(bold=True, color="B91C1C")
+            else:
+                cell.fill = body_fill
+
+
+def _ensure_attendance_row(roll_number):
+    global sheet
+
+    if roll_number in attendance_rows:
+        return attendance_rows[roll_number]
+
+    next_row = len(attendance_rows) + 5
+    attendance_rows[roll_number] = next_row
+    sheet.cell(row=next_row, column=1).value = roll_number
+    sheet.cell(row=next_row, column=1).font = Font(bold=True)
+    sheet.cell(row=next_row, column=1).alignment = Alignment(horizontal="center", vertical="center")
+    sheet.cell(row=next_row, column=1).border = Border(
+        left=Side(style="thin", color="D1D5DB"),
+        right=Side(style="thin", color="D1D5DB"),
+        top=Side(style="thin", color="D1D5DB"),
+        bottom=Side(style="thin", color="D1D5DB"),
+    )
+    return next_row
+
+
+def _mark_attendance(roll_number, status):
+    global sheet
+
+    row_idx = _ensure_attendance_row(roll_number)
+    target_col = today + 1
+    cell = sheet.cell(row=row_idx, column=target_col)
+    cell.value = status
+    cell.alignment = Alignment(horizontal="center", vertical="center")
+    cell.border = Border(
+        left=Side(style="thin", color="D1D5DB"),
+        right=Side(style="thin", color="D1D5DB"),
+        top=Side(style="thin", color="D1D5DB"),
+        bottom=Side(style="thin", color="D1D5DB"),
+    )
+    if status == "Present":
+        cell.fill = PatternFill(fill_type="solid", fgColor="D1FAE5")
+        cell.font = Font(bold=True, color="047857")
+    elif status == "Absent":
+        cell.fill = PatternFill(fill_type="solid", fgColor="FEE2E2")
+        cell.font = Font(bold=True, color="B91C1C")
+    else:
+        cell.fill = PatternFill(fill_type="solid", fgColor="F8FAFC")
+        cell.font = Font(bold=False)
+
+
+_style_attendance_sheet()
+book.save(workbook_path)
 
 
 
@@ -147,7 +316,7 @@ def take_attendance():
                 name = name[:name.find('.')]
                 # Assign attendance
                 if int(name) in range(1,61):
-                    sheet.cell(row=int(name), column=int(today)).value = "Present"
+                    _mark_attendance(int(name), "Present")
                 else:
                     pass
         
